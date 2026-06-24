@@ -1,0 +1,10 @@
+# Netlify build configuration for the PDF Merger app.
+# Pure static Angular build — no backend and no client-side router (single page),
+# so no SPA redirect rules are needed.
+
+[build]
+  command = "npm run build"
+  publish = "dist/pdf-merger"
+
+[build.environment]
+  NODE_VERSION = "20"
