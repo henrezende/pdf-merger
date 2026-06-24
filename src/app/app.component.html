@@ -1,0 +1,78 @@
+<div class="app">
+  <header class="app__header">
+    <h1>📎 PDF Merger</h1>
+    <p>Merge PDFs and images into a single PDF — entirely in your browser. Nothing is uploaded.</p>
+  </header>
+
+  <!-- Drop zone / file picker -->
+  <label
+    class="dropzone"
+    [class.dropzone--active]="isDragOver"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)"
+    (drop)="onDrop($event)"
+  >
+    <input type="file" multiple accept=".pdf,image/*" (change)="onFileInput($event)" hidden />
+    <span class="dropzone__icon">⬆️</span>
+    <span class="dropzone__title">Drop files here, or click to browse</span>
+    <span class="dropzone__hint">PDF · JPG · PNG · WebP · GIF · BMP · TIFF</span>
+  </label>
+
+  <!-- Toolbar -->
+  <div class="toolbar" *ngIf="items.length">
+    <span class="toolbar__count">{{ items.length }} file(s)</span>
+    <span class="spacer"></span>
+    <button type="button" class="btn" (click)="sortByName()">↕ Sort by name</button>
+    <button type="button" class="btn btn--ghost" (click)="clearAll()">Clear all</button>
+  </div>
+
+  <!-- File list (drag to reorder) -->
+  <ul
+    class="list"
+    *ngIf="items.length; else empty"
+    cdkDropList
+    (cdkDropListDropped)="reorder($event)"
+  >
+    <li
+      class="row"
+      *ngFor="let item of items; let i = index; trackBy: trackById"
+      cdkDrag
+      [class.row--bad]="item.kind === 'unsupported'"
+    >
+      <span class="row__handle" cdkDragHandle title="Drag to reorder">⠿</span>
+      <span class="row__index">{{ i + 1 }}</span>
+      <span class="row__icon">{{ iconFor(item.kind) }}</span>
+      <span class="row__name" [title]="item.name">{{ item.name }}</span>
+      <span class="row__badge" [class.row__badge--bad]="item.kind === 'unsupported'">{{ item.kind }}</span>
+      <span class="row__size">{{ item.sizeLabel }}</span>
+      <span class="row__moves">
+        <button type="button" class="iconbtn" (click)="moveUp(i)" [disabled]="i === 0" title="Move up">▲</button>
+        <button type="button" class="iconbtn" (click)="moveDown(i)" [disabled]="i === items.length - 1" title="Move down">▼</button>
+      </span>
+      <button type="button" class="iconbtn iconbtn--danger" (click)="remove(item)" title="Remove">✕</button>
+    </li>
+  </ul>
+  <ng-template #empty>
+    <p class="empty">No files yet — add some above. They merge top-to-bottom in the order shown.</p>
+  </ng-template>
+
+  <!-- Actions -->
+  <div class="actions">
+    <label class="field">
+      <span class="field__label">Output file name</span>
+      <input class="field__input" type="text" [(ngModel)]="outputName" placeholder="merged.pdf" />
+    </label>
+    <button type="button" class="btn btn--primary" [disabled]="!canMerge" (click)="merge()">
+      {{ isMerging ? 'Merging…' : '⬇ Merge & Download' }}
+    </button>
+  </div>
+
+  <p class="warn" *ngIf="hasUnsupported">Remove the unsupported file(s) before merging.</p>
+
+  <div class="status" [ngClass]="'status--' + status.kind" *ngIf="status">{{ status.text }}</div>
+
+  <footer class="app__footer">
+    Runs 100% in your browser with
+    <a href="https://pdf-lib.js.org/" target="_blank" rel="noopener">pdf-lib</a>. No server, no uploads.
+  </footer>
+</div>
